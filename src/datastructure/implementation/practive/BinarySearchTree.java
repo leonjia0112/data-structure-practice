@@ -1,112 +1,109 @@
 package datastructure.implementation.practive;
 
-public class BinarySearchTree {
+public class BinarySearchTree <AnyType extends Comparable<? super AnyType>> {
 
 	// TreeNode
-	private class TreeNode {
+	private static class TreeNode<AnyType extends Comparable<? super AnyType>> {
 		public TreeNode left;
 		public TreeNode right;
-		public TreeNode parent;
-		public Integer value;
+		public AnyType value;
 
+		// Constructors
 		public TreeNode() {
-			this.value = null;
-			this.left  = null;
-			this.right = null;
-			this.parent = null;
+			this(null, null, null);
 		}
 
-		public TreeNode(Integer value) {
-			this();
+		public TreeNode(AnyType e) {
+			this(e, null, null);
+		}
+		
+		public TreeNode(AnyType value, TreeNode<AnyType> left, TreeNode<AnyType> right) {
+			this.left = left;
+			this.right = right;
 			this.value = value;
 		}
-
-		@SuppressWarnings("unused")
-		public TreeNode(Integer value, TreeNode parent) {
-			this(value);
-			this.parent = parent;
-		}
-
-		@SuppressWarnings("unused")
-		public Integer getValue() {
-			return this.value;
-		}
 	}
 
+	// Instance variable
 	private TreeNode root;
 
+	// Constructors
 	public BinarySearchTree() {
-		this.root = new TreeNode();
+		this.root = null;
 	}
 
-	public BinarySearchTree(Integer value) {
+	public BinarySearchTree(AnyType value) {
 		this.root = new TreeNode(value);
 	}
 
-	public TreeNode search(TreeNode target) {
+	
+	public void makeEmpty() {
+		root = null;
+	}
+	
+	public boolean isEmpty() {
+		return root == null;
+	}
+
+	public boolean contains(TreeNode<AnyType> target) {
+		return contains(target);
+	}
+
+	/**
+	 * Insert new element to the binary search tree
+	 * @param target the item to insert
+	 */
+	public void insert(AnyType target) {
 		if (target == null) {
-			return null;
+			throw new IllegalArgumentException();
 		}
-
-		return __searchHelper(root, target);
+		root = insert(root, target);
 	}
 
-	private TreeNode __searchHelper(TreeNode root, TreeNode target) {
-		if (root == null || root.value == target.value) { // base case
-			return root;
-		} else if (root.value < target.value) {
-			return __searchHelper(root.right, target);
+	/**
+	 * Internal method to insert into a subtree
+	 * @param x the item to insert
+	 * @param t the node that roots the subtree
+	 * @return the new root of the subtree
+	 */
+	private TreeNode insert(TreeNode<AnyType> t, AnyType x) {
+		if (t == null)
+			return new TreeNode<>(x, null, null);
+		
+		int compareResult = root.value.compareTo(x);
+		
+		if (compareResult < 0) {
+			t.left = insert(t.left, x);
+		} else if (compareResult > 0) {
+			t.right = insert(t.right, x);
 		} else {
-			return __searchHelper(root.left, target);
+			throw new IllegalArgumentException();
 		}
+		return t;
 	}
 
-	public void insert(Integer target) {
-		if (target == null || root == null) {
-			root = new TreeNode(target);
-		}
-		__insertHelper(root, target);
-	}
-
-	private void __insertHelper(TreeNode root, Integer target) {
-		if (target == root.value) {
-			return;
-		} else if (target < root.value) {
-			if (root.left == null) {
-				root.left = new TreeNode(target);
-			} else {
-				__insertHelper(root.left, target);
-			}
-		} else {
-			if (root.right == null) {
-				root.left = new TreeNode(target);
-			} else {
-				__insertHelper(root.left, target);
-			}
-		}
-	}
-
-	public TreeNode delete(Integer target) {
+	public TreeNode delete(AnyType target) {
 		if (root == null)
 			return null;
 		return deleteHelper(root, target);
 	}
 	
-	private TreeNode deleteHelper(TreeNode root, Integer target) {
+	private TreeNode deleteHelper(TreeNode root, AnyType target) {
 		if (root == null) 
 			return null;
 		
 		// find the target node
 		// if equals then pass
-		if (root.value > target) {
+		int compareResult = root.value.compareTo(target);
+		if (compareResult < 0) { // smaller than the current node
 			root.left = deleteHelper(root.left, target);
 			return root;
-		} else if (root.value < target) {
+		} else if (compareResult > 0) { // larger than the current node
 			root.right = deleteHelper(root.right, target);
 			return root;
 		}
 		
-		// garantee root != null && root.value == target
+		// Guarantee root != null && root.value == target
 		
 		// case 1, 2, 3
 		if (root.left == null) {
@@ -149,5 +146,52 @@ public class BinarySearchTree {
 		// Invariance: curr (prev.left) does not have left child
 		prev.left = prev.left.right;
 		return curr;
+	}
+	
+	
+	/**
+	 * Internal method to find an item in a subtree
+	 * @param x is item to search for 
+	 * @param t the node that roots the subtree
+	 * @return true if the item is found; false otherwise
+	 */
+	private boolean contains(AnyType x, TreeNode<AnyType> t) {
+		if (t == null) {
+			return false;
+		}
+		
+		int compareResult = x.compareTo(t.value);
+		if(compareResult < 0)
+			return contains(x, t.left);
+		else if (compareResult > 0)
+			return contains(x, t.right);
+		else
+			return true; // result match
+	}
+	
+	/**
+	 * Internal method to find the smallest item in the tree, leftmost node
+	 * @param t the node that roots the subtree
+	 * @return node containing the smallest item
+	 */
+	private TreeNode<AnyType> findMin(TreeNode<AnyType> t) {
+		if (t == null)
+			return null;
+		else if (t.left == null)
+			return t;
+		return findMin(t.left);  // all the way to the left
+    }
+	
+	/**
+	 * Internal method to find the largest item in a subtree, rightmost node
+	 * @param t the node that roots the subtree
+	 * @return node containing the largest item
+	 */
+	private TreeNode<AnyType> findMax(TreeNode<AnyType> t) {
+		if (t == null)
+			return null;
+		else if (t.right == null)
+			return t;
+		return findMax(t.right); // all the way to the right
 	}
 }
